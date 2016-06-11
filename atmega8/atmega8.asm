@@ -72,6 +72,9 @@ main:
  rjmp main
 
 invertPortB_0:
+	sbis PIND,2
+	ret
+
 	push r16
 	push r17
 	in r16, PORTB
@@ -79,7 +82,7 @@ invertPortB_0:
 	eor r16, r17
 	out PORTB, r16
 
-	DELAY_MS 300, F_CPU
+	DELAY_MS 100, F_CPU
 	ldi r16, 0x00
 	sts delayInt0Bool, r16
 
@@ -91,6 +94,7 @@ ret
 
 i_int0:
 	cli
+	
 	push r16
 	OUTI GICR, 0
 	
