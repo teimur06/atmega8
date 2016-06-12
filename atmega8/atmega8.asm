@@ -94,8 +94,6 @@ ret
 
 i_int0:
 	cli
-	
-	push r16
 	OUTI GICR, 0
 	
 	lds r16, delayInt0Bool
@@ -104,6 +102,5 @@ i_int0:
 	
 	ldi r16, 0x01
 	sts delayInt0Bool, r16
-	pop r16
 	sei
 reti
