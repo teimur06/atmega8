@@ -6,3 +6,5 @@
  */ 
   .dseg
 	delayInt0Bool: .byte 1
+	numberOut: .byte 3
+	num: .byte 1

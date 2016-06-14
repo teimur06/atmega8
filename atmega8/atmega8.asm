@@ -13,4 +13,5 @@
  .include "initInterrupt.asm"
  .include "main.asm"
  .include "LCD12864_Driver.asm"
+ .include "math.asm"
  .include "text.asm"

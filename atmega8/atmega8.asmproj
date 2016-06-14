@@ -93,6 +93,9 @@
     <Compile Include="main.asm">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="math.asm">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="text.asm">
       <SubType>Code</SubType>
     </Compile>

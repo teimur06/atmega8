@@ -15,6 +15,20 @@ for1:
 exit1:
 	ret
 
+LCD12864_out_string_for_ram:
+LCD12864_out_ram_for1:
+	ld Temp, Z+
+	cpi Temp1, 0
+	breq LCD12864_out_ram_exit1
+	dec Temp1
+	push Temp1
+	mov  Data,  Temp
+	rcall  LCD12864_DataOut
+	pop Temp1
+	rjmp LCD12864_out_ram_for1
+LCD12864_out_ram_exit1:
+	ret
+
 
 
 /*************************************
