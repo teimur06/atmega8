@@ -40,15 +40,18 @@
     </AsfFrameworkConfig>
     <avrtool>com.atmel.avrdbg.tool.simulator</avrtool>
     <com_atmel_avrdbg_tool_simulator>
-      <ToolOptions xmlns="">
+      <ToolOptions>
         <InterfaceProperties>
         </InterfaceProperties>
+        <InterfaceName>
+        </InterfaceName>
       </ToolOptions>
-      <ToolType xmlns="">com.atmel.avrdbg.tool.simulator</ToolType>
-      <ToolNumber xmlns="">
+      <ToolType>com.atmel.avrdbg.tool.simulator</ToolType>
+      <ToolNumber>
       </ToolNumber>
-      <ToolName xmlns="">Simulator</ToolName>
+      <ToolName>Simulator</ToolName>
     </com_atmel_avrdbg_tool_simulator>
+    <avrtoolinterface />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <ToolchainSettings>
@@ -57,6 +60,9 @@
       </AvrAssembler>
     </ToolchainSettings>
     <OutputType>Executable</OutputType>
+    <UsesExternalMakeFile>False</UsesExternalMakeFile>
+    <BuildTarget>all</BuildTarget>
+    <CleanTarget>clean</CleanTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <ToolchainSettings>
@@ -69,7 +75,25 @@
     <Compile Include="atmega8.asm">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="dataseg.asm">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="initInterrupt.asm">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LCD12864_Driver.asm">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LCD12864_Driver.inc">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="macro.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="main.asm">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="text.asm">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
