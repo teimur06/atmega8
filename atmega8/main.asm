@@ -33,10 +33,16 @@
 	sts delayInt0Bool, r16
 	sts num, r16
 	
-
-	; on timer1 
 	OUTI TIMSK, 0
 
+	; on timer2
+	OUTI OCR2, 2
+	OUTI TCNT2, 0
+	OUTI TCCR2, (1<<WGM20) | (1<<WGM21) |(1<<CS22) | (1<<CS20) | (1<<COM20)| (1<<COM21)
+
+	
+	; on timer1 
+	
 	OUTI OCR1AH, high(time)
 	OUTI OCR1AL, low(time)
 
@@ -57,6 +63,8 @@
 
 	; init display
 	rcall LCD12864_Init
+	LCD8_MACRO_VERTICAL_SCROLL
+	LCD8_MACRO_OUT_COMMAND 0b00100000
 
 	LCD8_MACRO_OUT_STRING text,8
 	LCD8_MACRO_MOV_CURSOR 0,1
@@ -66,12 +74,12 @@
 	ldi r16, 0
 	rcall print_number
 
+	
+
+
 	sei
 
 main:
-
-
-
 	lds r16, delayInt0Bool
 	sbrc r16, 0
 	rcall invertPortB_0
@@ -92,8 +100,8 @@ invertPortB_0:
 	lds r16, num
 	inc r16
 	sts num, r16
-
 	rcall print_number
+
 
 	DELAY_MS 100, F_CPU
 	ldi r16, 0x00

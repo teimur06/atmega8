@@ -156,33 +156,72 @@ strob:
 
 
 LCD12864_Init:                      ;Инициализация дисплея.
-	 LCD8_MACRO_DELAY 5, 50
-     LCD8_MACRO_SET_FUNCTION (1<<SET_FUNCT)    ;Вывод команды.
-	 LCD8_MACRO_DELAY 5, 120
+	 LCD8_MACRO_DELAY 255, 255
+	 LCD8_MACRO_DELAY 57, 255
+     LCD8_MACRO_SET_FUNCTION (1<<SET_FUNCT)  | (1<<BIT_8) | (1<<EXT_FUNC)  ;Вывод команды.
+	 LCD8_MACRO_DELAY 1, 255
+     LCD8_MACRO_SET_FUNCTION (1<<SET_FUNCT)  | (1<<BIT_8) | (1<<EXT_FUNC)    ;Вывод команды.
+	 LCD8_MACRO_DELAY 1, 255
 	 LCD8_MACRO_SET_DISPLAY_STATUS (1<< SET_DISPLAY) |   (1<<DISPLAY_ON)  | (1<<CURSOR_ON)
-	 LCD8_MACRO_DELAY 5, 50
-     LCD8_MACRO_SET_FUNCTION (1<<SET_FUNCT)    ;Вывод команды.
-	 LCD8_MACRO_DELAY 5, 120
+	 LCD8_MACRO_DELAY 1, 255
+
 	 LCD8_MACRO_CLEAR       ;Вывод команды.
-   	 LCD8_MACRO_DELAY 5, 20
+   	 LCD8_MACRO_DELAY 80, 255
      LCD8_MACRO_ENTRY_MODE_SET (1<<ENTRY_MODE) | (1<<ENTRY_ID)
 
-	 LCD8_MACRO_DELAY 10, 120
+	
 
 
     ret
 
+	; Расчет задержки
+
+	; E_temp - сумма тактов в цикле Temp
+	; E_temp1 - сумма тактов в цикле Temp1
+	; F частота
+	; Tmk - время в микросекундах за 1 такт
+	; C_temp1 - Количество циклов (Значение Temp1) Миллисекунд При temp = 255
+	; C_temp - Количество циклов (Значение Temp) для микросекунд
+	; ML - Количества требуемых миллисекунд, если одна то ML = 1
+	; MK - Количества требуемых микросекунд, если одна то MK = 1
+
+	; Tmk = 1000000/F
+	; C_temp = MK / (E_temp * Tmk) 
+	; C_temp1 = ( (ML * 1000) / (256 * E_temp * Tmk) ) - ( (E_temp1 * ML) / 256)
+
+
+	/* Пример Требуется 12 миллисекунды
+	E_temp - 4
+	E_temp1 - 8
+	F = 8 000 000 Гц
+	Tmk = 1 000 000 / 8 000 000 = 0.125 мкС
+	C_temp = 255 ( Так как нам нужны миллесекунды )
+	C_temp1 = ( (12 * 1000) / (256 * 4 * 0.125) ) - ( (8 * 12) / 256 ) = 93
+
+	   Пример: Требуется 25 микросекунд
+	E_temp - 4
+	E_temp1 - 8
+	F = 8 000 000 Гц
+	Tmk = 1 000 000 / 8 000 000 = 0.125 мкС
+	C_temp = 25 / (4 * 0,125) = 50
+	C_temp1 = 0 ( Так как нам нужны только микросекунды )
+	*/
+
 LCD12864_Delay:
-	push  Temp                  ;Сохраняем младшую задержку в ОЗУ.
+	; Цикл E_temp1
+	push  Temp                  ;Сохраняем младшую задержку в ОЗУ.  [2 Такста]		E_temp1
+
+	; Цикл E_temp
 ES0:
-	dec  Temp                   ;- задержка.
-	cpi  Temp,  0               ;Закончилась?
-    brne  ES0                   ;Нет - еще раз.
+	dec  Temp                   ;- задержка.						[1 Такт]		E_temp
+	cpi  Temp,  0               ;Закончилась?						[1 Такт]		E_temp
+    brne  ES0                   ;Нет - еще раз.						[2 Такта]		E_temp
 	
-	pop  Temp                   ;Да? Восстановить здержку.
-	dec  Temp1                  ;Отнять от "количества задержек" разряда.
-	cpi  Temp1, 0               ;Количество задержек = 0?
-    brne  LCD12864_Delay               
+	; Цикл E_temp1
+	pop  Temp                   ;Да? Восстановить здержку.			[2 Такта]		E_temp1
+	dec  Temp1                  ;Отнять от "количества задержек" разряда. [1 Такт]	E_temp1
+	cpi  Temp1, 0               ;Количество задержек = 0?			[1 Такт]		E_temp1
+    brne  LCD12864_Delay		;									[2 Такта]		E_temp1
     ret
 
 

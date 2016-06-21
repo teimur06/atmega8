@@ -5,7 +5,7 @@
  *   Author: Asus-PC
  */ 
  .equ F_CPU = 8001000
- .equ time = 1000 ;7812
+ .equ time = 3000 ;7812
 
  .include "macro.inc"
  .include "LCD12864_Driver.inc"
