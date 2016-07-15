@@ -96,7 +96,7 @@
     <Compile Include="math.asm">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="text.asm">
+    <Compile Include="functions.asm">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

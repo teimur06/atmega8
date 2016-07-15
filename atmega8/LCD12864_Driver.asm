@@ -156,8 +156,7 @@ strob:
 
 
 LCD12864_Init:                      ;Инициализация дисплея.
-	 LCD8_MACRO_DELAY 255, 255
-	 LCD8_MACRO_DELAY 57, 255
+	 LCD8_MACRO_DELAY 155, 255
      LCD8_MACRO_SET_FUNCTION (1<<SET_FUNCT)  | (1<<BIT_8) | (1<<EXT_FUNC)  ;Вывод команды.
 	 LCD8_MACRO_DELAY 1, 255
      LCD8_MACRO_SET_FUNCTION (1<<SET_FUNCT)  | (1<<BIT_8) | (1<<EXT_FUNC)    ;Вывод команды.

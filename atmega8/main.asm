@@ -28,29 +28,56 @@
 	out PORTD, r16
 	cbi PORTB, 0
 
+
+	ldi r16, 0
+	sts color, r16
+
+
+	; Начальный цвет светодиода
+	ldi r16, 0
+	sts LED1_RED, r16
+	ldi r16, 0
+	sts LED1_GREEN, r16
+	ldi r16, 0
+	sts LED1_BLUE, r16
+
+
+
+    
+
+
 	; init RAM
 	ldi r16, 0x00
 	sts delayInt0Bool, r16
+	sts T0Bool, r16
+	sts T0Bool, r16
+	
 	sts num, r16
 	
-	OUTI TIMSK, 0
+	ldi r24, 0xFF
+
+	OUTI TIMSK, (1<<TOIE0) | (1<<OCF2)
+
+	; on timer0
+	OUTI TCNT0, 0
+	OUTI TCCR0, (1<<CS00)
+
 
 	; on timer2
-	OUTI OCR2, 2
+	OUTI OCR2, 1
 	OUTI TCNT2, 0
-	OUTI TCCR2, (1<<WGM20) | (1<<WGM21) |(1<<CS22) | (1<<CS20) | (1<<COM20)| (1<<COM21)
-
+	OUTI TCCR2, (1<<CS10)  |(1<<CS12) | (1<< WGM21)
 	
 	; on timer1 
 	
-	OUTI OCR1AH, high(time)
+/*	OUTI OCR1AH, high(time)
 	OUTI OCR1AL, low(time)
 
 	OUTI TCNT1H, 0
 	OUTI TCNT1L, 0
 
-	OUTI TCCR1A, (1<<COM1A0) 
-	OUTI TCCR1B, (1<<CS10) | (1<<CS12) | (1<<WGM12)
+	OUTI TCCR1A, 0 
+	OUTI TCCR1B,  (1<<CS10)  |(1<<CS12) | (1<<WGM12)*/
 	
 
 	; on int0
@@ -70,41 +97,157 @@
 	LCD8_MACRO_MOV_CURSOR 0,1
 	LCD8_MACRO_OUT_STRING debuge,13
 
-	LCD8_MACRO_MOV_CURSOR 3,2
-	ldi r16, 0
-	rcall print_number
-
-	
-
+	rcall printCurrentColor
 
 	sei
 
+
+
+; Главная программа
 main:
 	lds r16, delayInt0Bool
 	sbrc r16, 0
-	rcall invertPortB_0
- rjmp main
+	rcall int0_proc
+rjmp main
 
-invertPortB_0:
+
+
+ 
+
+; Прерывание нажатия кнопки int0
+i_int0:
+	push r16
+	in r16, SREG
+	push r16
+
+	OUTI GICR, 0
+	
+
+	lds r16, delayInt0Bool
+	sbrc r16, 0
+	rjmp i_int0_exit
+	
+	ldi r16, 0x01
+	sts delayInt0Bool, r16
+	
+  i_int0_exit:
+	pop r16
+	out SREG, r16
+	pop r16
+reti
+
+
+; Подпрограмма управления RGB светодиодом
+; PD0 = RED
+; PD1 = GREEN
+; PD2 = BLUE
+
+.def reg1 = r25
+.def reg2 = r26
+.def reg3 = r27
+T0:
+	push reg1
+	push reg2
+	push reg3
+
+	in reg1, SREG
+	push reg1
+
+	in reg1, PORTD
+	lds reg2, COUNT_PWM ; Счетчик ШИМ
+	cpi reg2, 0
+	brne T0_red
+	cbr reg1, 0x0B ; Если счетчик ШИМ на нуле включаем все светодиоды
+
+	; Если значение счетчика ШИМ достигло LED1_*** то выключаем нужные светодиоды
+  T0_red:
+	lds reg3, LED1_RED
+	cp reg2, reg3
+	brne T0_green
+	sbr reg1, 0x01 ; Отключам RED
+
+  T0_green:
+	lds reg3, LED1_GREEN
+	cp reg2, reg3
+	brne T0_blue
+	sbr reg1, 0x02 ; Отключам GREEN
+
+  T0_blue:
+	lds reg3, LED1_BLUE
+	cp reg2, reg3
+	brne T0_exit
+	sbr reg1, 0x08 ; Отключам BLUE
+
+  T0_exit:
+	out PortD, reg1
+	; Увеличиваем счетчик ШИМ
+
+	inc reg2
+	sts COUNT_PWM, reg2
+
+	pop reg1
+	out SREG, reg1
+
+	pop reg3
+	pop reg2
+	pop reg1
+reti
+
+; Прерывания таймера счетчика Т2 
+T2:
+	push r16
+	push r17
+	in r16, SREG
+	push r16
+	
+	lds r16, LED1_RED
+	ldi r17, 1
+	add r16, r17
+	sts LED1_RED, r16
+	ldi r17, 0
+	lds r16, LED1_GREEN
+	adc r16,r17
+	sts LED1_GREEN, r16
+	lds r16, LED1_BLUE
+	adc r16,r17
+	sts LED1_BLUE, r16
+
+
+
+	pop r16
+	out SREG, r16
+	pop r17
+	pop r16		
+reti
+
+; Прерывания таймера счетчика Т1 при совпадении А
+T1_A:
+
+reti
+
+
+
+; Подпрограмма инвертирования 
+int0_proc:
 	sbis PIND,2
 	ret
 
 	push r16
 	push r17
-	in r16, PORTB
-	ldi r17, 0x01
-	eor r16, r17
-	out PORTB, r16
 
+/*	LCD8_MACRO_MOV_CURSOR 3,2
+	LCD8_MACRO_OUT_STRING clear_number, 4
 	LCD8_MACRO_MOV_CURSOR 3,2
 	lds r16, num
 	inc r16
 	sts num, r16
-	rcall print_number
+	;sts LED1_GREEN, r16
+	rcall print_number*/
 
+	rcall printCurrentColor
 
-	DELAY_MS 100, F_CPU
-	ldi r16, 0x00
+	delay 100
+	ldi r16, 0
 	sts delayInt0Bool, r16
 
 	OUTI GICR, (1<<INT0)
@@ -113,96 +256,12 @@ invertPortB_0:
 ret
 
 
-i_int0:
-	cli
-	OUTI GICR, 0
-	
-	lds r16, delayInt0Bool
-	sbrc r16, 0
-	reti
-	
-	ldi r16, 0x01
-	sts delayInt0Bool, r16
-	sei
-reti
 
-
-; in r16 number
-; out r16 length line
-binToAnsii:
-	push r17
-	push r18
-	ldi r18,0
-	cpi r16, 0xA
-	brlo less10
-	cpi r16, 0x64
-	brlo less100
-	cpi r16, 0xC8
-	brlo less200
-	rjmp larger200
-
-	less10:
-		ldi r18, 1
-		ldi r17, 48
-		add r16, r17
-		sts numberOut+2, r16
-		rjmp endBinToAnsii
-	
-	less100: 
-		cpi r18, 0
-		brne else
-		ldi r18, 2
-		else:
-		ldi r17, 0xA
-		rcall div8u_c
-		ldi r17, 48
-		add r16, r17
-		add r15, r17
-		sts numberOut+2,r15
-		sts numberOut+1, r16  
-		rjmp endBinToAnsii
-
-	less200:
-		ldi r18, 3
-		ldi r17, 0x31
-		sts numberOut, r17
-		subi r16, 100
-		rjmp less100
-
-	larger200:
-		ldi r18,3
-		ldi r17, 0x32
-		sts numberOut, r17
-		subi r16, 200
-		rjmp less100
-
-	endBinToAnsii:
-		mov r16, r18
-		pop r18
-		pop r17
-ret
-
-
-; in r16 number
-print_number:
-	rcall binToAnsii
-	
-	ldi ZL, low(numberOut)
-	ldi ZH, high(numberOut)
-	ldi temp1, 3
-	sub temp1, Temp
-	
-	add ZL, temp1 
-	ldi temp1, 0
-	adc ZH, temp1 
-
-	mov temp1, temp
-
-	rcall LCD12864_out_string_for_ram
-ret
-
-
-
+; Текст
  text: .db "init: ok"
  debuge: .db "display debug",0
+ clear_number: .db "    "
+ r: .db "R:"
+ g: .db "G:"
+ b: .db "B:"
 
